@@ -1,0 +1,52 @@
+<Policy PolicyId="BPL"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-overrides">
+    <Target>
+      <Subjects>
+        <AnySubject/>
+      </Subjects>
+      <Resources>
+        <AnyResource>
+      </Resources>
+      <Actions>
+        <AnyAction/>
+      </Actions>
+    </Target>
+
+    <!-- Rule to see if we should allow the subject to read a resource -->
+    <Rule RuleId="ReadRule" Effect="Permit">
+      <!-- Only use this Rule if the action is read -->
+      <Target>
+        <Subjects>
+          <AnySubject/>
+        </Subjects>
+        <Resources>
+          <AnyResource/>
+        </Resources>
+        <Actions>
+          <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Read</AttributeValue>
+            <ActionAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string"
+                                       AttributeId="ReadAction"/>
+          </ActionMatch>
+        </Actions>
+      </Target>
+
+    <!-- Only allow read if subject access level >= object access level -->
+      <Condition FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-greater-than-or-equal"
+          <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-one-and-only">
+            <EnvironmentAttributeSelector DataType="http://www.w3.org/2001/XMLSchema#time"
+                                          AttributeId="urn:oasis:names:tc:xacml:1.0:environment:current-time"/>
+          </Apply>
+          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#time">09:00:00</AttributeValue>
+        </Apply>
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-less-than-or-equal"
+          <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-one-and-only">
+            <EnvironmentAttributeSelector DataType="http://www.w3.org/2001/XMLSchema#time"
+                                          AttributeId="urn:oasis:names:tc:xacml:1.0:environment:current-time"/>
+          </Apply>
+          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#time">17:00:00</AttributeValue>
+        </Apply>
+      </Condition>
+
+    </Rule>
