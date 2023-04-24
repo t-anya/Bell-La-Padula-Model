@@ -32,21 +32,133 @@
       </Target>
 
     <!-- Only allow read if subject access level >= object access level -->
-      <Condition FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
-        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-greater-than-or-equal"
-          <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-one-and-only">
-            <EnvironmentAttributeSelector DataType="http://www.w3.org/2001/XMLSchema#time"
-                                          AttributeId="urn:oasis:names:tc:xacml:1.0:environment:current-time"/>
-          </Apply>
-          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#time">09:00:00</AttributeValue>
-        </Apply>
-        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-less-than-or-equal"
-          <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:time-one-and-only">
-            <EnvironmentAttributeSelector DataType="http://www.w3.org/2001/XMLSchema#time"
-                                          AttributeId="urn:oasis:names:tc:xacml:1.0:environment:current-time"/>
-          </Apply>
-          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#time">17:00:00</AttributeValue>
-        </Apply>
-      </Condition>
 
+      <Condition FunctionId="urn:oasis:names:tc:xacml:1.0:function:or">
+
+    <!-- Read : subject access level High -> object access level High/Low  -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+
+    <!-- Read : subject access level High  -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">High</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:subject" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+        </Apply>
+    <!-- Read : object access level High / Low -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+               <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                  <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">High</AttributeValue>
+                  <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Low</AttributeValue>
+               </Apply>
+               <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+          </Apply>
+
+        </Apply>
+    
+
+    <!-- Read : subject access level Low -> object access level Low  -->
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+
+    <!-- Read : subject access level Low  -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Low</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:subject" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+        </Apply>
+    <!-- Read : object access level Low -->
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Low</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+        </Apply>
+      
+        </Apply>
+
+      </Condition>
     </Rule>
+
+     <Rule RuleId="WriteRule" Effect="Permit">
+      <!-- Only use this Rule if the action is write -->
+      <Target>
+        <Subjects>
+          <AnySubject/>
+        </Subjects>
+        <Resources>
+          <AnyResource/>
+        </Resources>
+        <Actions>
+          <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Write</AttributeValue>
+            <ActionAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string"
+                                       AttributeId="WriteAction"/>
+          </ActionMatch>
+        </Actions>
+      </Target>
+
+    <!-- Only allow write if object access level >= subject access level -->
+
+      <Condition FunctionId="urn:oasis:names:tc:xacml:1.0:function:or">
+
+    <!-- Write : object access level High -> subject access level High/Low  -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+
+    <!-- Write : object access level High  -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">High</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+        </Apply>
+    <!-- Write : subject access level High / Low -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+               <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                  <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">High</AttributeValue>
+                  <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Low</AttributeValue>
+               </Apply>
+               <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:subject" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+          </Apply>
+
+        </Apply>
+    
+
+    <!-- Write : object access level Low -> subject access level Low  -->
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+
+    <!-- Write : subject access level Low  -->
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Low</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:subject" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+        </Apply>
+    <!-- Write : object access level Low -->
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Low</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-access-level" 
+                  Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" 
+                  DataType="http://www.w3.org/2001/XMLSchema#string" 
+                  MustBePresent="true"/>
+        </Apply>
+      
+        </Apply>
+        
+      </Condition>
+    </Rule>
+
+    <Rule RuleId="FinalRule" Effect="Deny"/>
+
+    </Policy>
